@@ -160,8 +160,8 @@ jobs:
                 xorg-dev libwayland-dev libxkbcommon-dev wayland-protocols \
                 libegl1-mesa-dev mesa-vulkan-drivers
           - name: Macos
-            os: macos-latest
-            target: x86_64-apple-darwin
+            os: macos-14
+            target: aarch64-apple-darwin
             shell: bash
             setup_env: brew install cmake ninja
           - name: Windows gnu

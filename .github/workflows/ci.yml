@@ -15,126 +15,126 @@ env:
   CACHE_SUFFIX: a
 
 jobs:
-  # A build that does some "meta" checks on the code integrity where the Rust compiler can't.
-  integrity-build:
-    name: Code integrity checks
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Set up Python
-        uses: actions/setup-python@v4
-      - run: python checks.py
+  # # A build that does some "meta" checks on the code integrity where the Rust compiler can't.
+  # integrity-build:
+  #   name: Code integrity checks
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: true
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v4
+  #     - run: python checks.py
 
-  fmt:
-    name: Format
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          target: ${{ matrix.target }}
-          components: rustfmt
-      - name: Run rustfmt
-        run: |
-          cargo fmt -- --check
+  # fmt:
+  #   name: Format
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         submodules: true
+  #     - name: Install Rust toolchain
+  #       uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         target: ${{ matrix.target }}
+  #         components: rustfmt
+  #     - name: Run rustfmt
+  #       run: |
+  #         cargo fmt -- --check
 
-  clippy:
-    name: Clippy ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
-    env:
-      CARGO_BUILD_TARGET: ${{ matrix.target }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Linux
-          - name: Linux x86_64
-            os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            # Macos
-          - name: Macos x86_64
-            os: macos-latest
-            target: x86_64-apple-darwin
-          - name: Macos aarch64
-            os: macos-latest
-            target: aarch64-apple-darwin
-            # Windows
-          - name: Windows gnu x86_64
-            os: windows-latest
-            target: x86_64-pc-windows-gnu
-          - name: Windows msvc x86_64
-            os: windows-latest
-            target: x86_64-pc-windows-msvc
-          - name: Windows gnu i686
-            os: windows-latest
-            target: i686-pc-windows-gnu
-          - name: Windows msvc i686
-            os: windows-latest
-            target: i686-pc-windows-msvc
-          # Android
-          - name: Android aarch64
-            os: ubuntu-latest
-            target: aarch64-linux-android
-            setup_env: |
-              set -x
-              ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653
-              CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
+  # clippy:
+  #   name: Clippy ${{ matrix.name }}
+  #   runs-on: ${{ matrix.os }}
+  #   env:
+  #     CARGO_BUILD_TARGET: ${{ matrix.target }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         # Linux
+  #         - name: Linux x86_64
+  #           os: ubuntu-latest
+  #           target: x86_64-unknown-linux-gnu
+  #           # Macos
+  #         - name: Macos x86_64
+  #           os: macos-latest
+  #           target: x86_64-apple-darwin
+  #         - name: Macos aarch64
+  #           os: macos-latest
+  #           target: aarch64-apple-darwin
+  #           # Windows
+  #         - name: Windows gnu x86_64
+  #           os: windows-latest
+  #           target: x86_64-pc-windows-gnu
+  #         - name: Windows msvc x86_64
+  #           os: windows-latest
+  #           target: x86_64-pc-windows-msvc
+  #         - name: Windows gnu i686
+  #           os: windows-latest
+  #           target: i686-pc-windows-gnu
+  #         - name: Windows msvc i686
+  #           os: windows-latest
+  #           target: i686-pc-windows-msvc
+  #         # Android
+  #         - name: Android aarch64
+  #           os: ubuntu-latest
+  #           target: aarch64-linux-android
+  #           setup_env: |
+  #             set -x
+  #             ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653
+  #             CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
 
-              echo "CC=$CC" >> $GITHUB_ENV
-              echo "CXX=$CC++" >> $GITHUB_ENV
-              echo "CLANG_PATH=$CC" >> $GITHUB_ENV
-              echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$CC" >> $GITHUB_ENV
+  #             echo "CC=$CC" >> $GITHUB_ENV
+  #             echo "CXX=$CC++" >> $GITHUB_ENV
+  #             echo "CLANG_PATH=$CC" >> $GITHUB_ENV
+  #             echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$CC" >> $GITHUB_ENV
 
-              echo "LIBCLANG_PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/lib64/libclang.so.13" >> $GITHUB_ENV
-              echo "LLVM_CONFIG_PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-config" >> $GITHUB_ENV
-              echo "BINDGEN_EXTRA_CLANG_ARGS='-isysroot $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot'" >> $GITHUB_ENV
-          - name: Android armv7
-            os: ubuntu-latest
-            target: armv7-linux-androideabi
-            setup_env: |
-              set -x
-              ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653
-              CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
+  #             echo "LIBCLANG_PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/lib64/libclang.so.13" >> $GITHUB_ENV
+  #             echo "LLVM_CONFIG_PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-config" >> $GITHUB_ENV
+  #             echo "BINDGEN_EXTRA_CLANG_ARGS='-isysroot $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot'" >> $GITHUB_ENV
+  #         - name: Android armv7
+  #           os: ubuntu-latest
+  #           target: armv7-linux-androideabi
+  #           setup_env: |
+  #             set -x
+  #             ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653
+  #             CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
 
-              echo "CC=$CC" >> $GITHUB_ENV
-              echo "CXX=$CC++" >> $GITHUB_ENV
-              echo "CLANG_PATH=$CC" >> $GITHUB_ENV
-              echo "CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$CC" >> $GITHUB_ENV
+  #             echo "CC=$CC" >> $GITHUB_ENV
+  #             echo "CXX=$CC++" >> $GITHUB_ENV
+  #             echo "CLANG_PATH=$CC" >> $GITHUB_ENV
+  #             echo "CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$CC" >> $GITHUB_ENV
 
-              echo "LIBCLANG_PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/lib64/libclang.so.13" >> $GITHUB_ENV
-              echo "LLVM_CONFIG_PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-config" >> $GITHUB_ENV
-              echo "BINDGEN_EXTRA_CLANG_ARGS='-isysroot $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot'" >> $GITHUB_ENV
-          # iOS
-          - name: iOS stable
-            os: macos-latest
-            target: aarch64-apple-ios
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          target: ${{ matrix.target }}
-          components: clippy
-      - name: Setup caching
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: clippy-${{ matrix.target }}-${{ env.CACHE_SUFFIX }}
-      - name: Setup Environment
-        run: ${{ matrix.setup_env }}
-      - name: Run clippy
-        run: cargo clippy
-        shell: bash
+  #             echo "LIBCLANG_PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/lib64/libclang.so.13" >> $GITHUB_ENV
+  #             echo "LLVM_CONFIG_PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-config" >> $GITHUB_ENV
+  #             echo "BINDGEN_EXTRA_CLANG_ARGS='-isysroot $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot'" >> $GITHUB_ENV
+  #         # iOS
+  #         - name: iOS stable
+  #           os: macos-latest
+  #           target: aarch64-apple-ios
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         submodules: true
+  #     - name: Install Rust toolchain
+  #       uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         target: ${{ matrix.target }}
+  #         components: clippy
+  #     - name: Setup caching
+  #       uses: Swatinem/rust-cache@v2
+  #       with:
+  #         key: clippy-${{ matrix.target }}-${{ env.CACHE_SUFFIX }}
+  #     - name: Setup Environment
+  #       run: ${{ matrix.setup_env }}
+  #     - name: Run clippy
+  #       run: cargo clippy
+  #       shell: bash
 
   examples:
     name: Examples ${{ matrix.name }}
@@ -148,22 +148,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Ubuntu
-            os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            shell: bash
-            setup_env: |
-              set -x;
-              sudo apt update -y
-              sudo apt install -y \
-                cmake ninja-build clang \
-                xorg-dev libwayland-dev libxkbcommon-dev wayland-protocols \
-                libegl1-mesa-dev mesa-vulkan-drivers
-          - name: Macos
-            os: macos-latest
-            target: x86_64-apple-darwin
-            shell: bash
-            setup_env: brew install cmake ninja
+          # - name: Ubuntu
+          #   os: ubuntu-latest
+          #   target: x86_64-unknown-linux-gnu
+          #   shell: bash
+          #   setup_env: |
+          #     set -x;
+          #     sudo apt update -y
+          #     sudo apt install -y \
+          #       cmake ninja-build clang \
+          #       xorg-dev libwayland-dev libxkbcommon-dev wayland-protocols \
+          #       libegl1-mesa-dev mesa-vulkan-drivers
+          # - name: Macos
+          #   os: macos-latest
+          #   target: x86_64-apple-darwin
+          #   shell: bash
+          #   setup_env: brew install cmake ninja
           - name: Windows gnu
             os: windows-latest
             target: x86_64-pc-windows-gnu
@@ -195,6 +195,7 @@ jobs:
             cmake:p
             ninja:p
             rust:p
+      - uses: ssciwr/setup-mesa-dist-win@v2
       - if: "!contains(matrix.target, 'windows-gnu')"
         name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable

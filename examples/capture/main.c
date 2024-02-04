@@ -67,8 +67,11 @@ int main(int argc, char *argv[]) {
   assert(instance);
 
   WGPUAdapter adapter = NULL;
-  wgpuInstanceRequestAdapter(instance, NULL, handle_request_adapter,
-                             (void *)&adapter);
+  wgpuInstanceRequestAdapter(instance,
+                             &(const WGPURequestAdapterOptions){
+                                 .backendType = WGPUBackendType_D3D12,
+                             },
+                             handle_request_adapter, (void *)&adapter);
   assert(adapter);
 
   WGPUDevice device = NULL;
